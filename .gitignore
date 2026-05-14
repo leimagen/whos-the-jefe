@@ -6,3 +6,4 @@ simulator/state.json
 .env
 *.pyc
 assets/
+DEV_NOTES.md
