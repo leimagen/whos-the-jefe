@@ -1,0 +1,8 @@
+node_modules/
+simulator/__pycache__/
+simulator/replies.json
+simulator/inbox.json
+simulator/state.json
+.env
+*.pyc
+assets/
