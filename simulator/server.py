@@ -22,9 +22,28 @@ class Handler(BaseHTTPRequestHandler):
     def do_OPTIONS(self):
         self.send_response(200)
         self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "POST, GET, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.end_headers()
+
+    def do_GET(self):
+        path = urlparse(self.path).path
+
+        if path == "/api/reactions":
+            reactions = []
+            if os.path.exists("simulator/reactions.json"):
+                with open("simulator/reactions.json") as f:
+                    reactions = json.load(f)
+            with open("simulator/reactions.json", "w") as f:
+                json.dump([], f)
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(json.dumps(reactions).encode())
+        else:
+            self.send_response(404)
+            self.end_headers()
 
     def do_POST(self):
         length = int(self.headers.get("Content-Length", 0))
@@ -43,6 +62,16 @@ class Handler(BaseHTTPRequestHandler):
             replies.append(body)
             with open("simulator/replies.json", "w") as f:
                 json.dump(replies, f, indent=2)
+            self._respond({"ok": True})
+
+        elif path == "/api/reaction":
+            reactions = []
+            if os.path.exists("simulator/reactions.json"):
+                with open("simulator/reactions.json") as f:
+                    reactions = json.load(f)
+            reactions.append(body)
+            with open("simulator/reactions.json", "w") as f:
+                json.dump(reactions, f, indent=2)
             self._respond({"ok": True})
 
         else:

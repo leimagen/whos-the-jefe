@@ -90,3 +90,25 @@ if __name__ == "__main__":
     # She thinks again now that she's frustrated
     response2 = maria.think("Your boss just asked how the project is going.")
     print(f"{maria.name} (frustrated): {response2}")
+
+def get_available_contracts(state, contracts):
+    """Returns contracts the agency can currently take based on team skills."""
+    team_roles = [emp["role"] for emp in state["employees"]]
+    takeable = []
+
+    for contract in contracts["available"]:
+        reputation = state["agency"].get("reputation", 0)
+        if reputation < contract["reputation_required"]:
+            continue
+
+        can_fill = all(
+            any(role in emp_role for emp_role in team_roles)
+            for role in contract["required_roles"]
+        )
+
+        takeable.append({
+            **contract,
+            "can_take": can_fill
+        })
+
+    return takeable

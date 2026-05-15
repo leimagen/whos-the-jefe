@@ -1,3 +1,5 @@
+import { showThoughtBubble } from '/frontend/js/labels.js';
+
 let emails = [];
 let currentEmailId = null;
 
@@ -114,6 +116,9 @@ function sendReply() {
   .then(r => r.json())
   .then(() => {
     email.replied = true;
+    // Show reaction bubble on the employee's sprite
+    const empId = email.employee_id;
+    showThoughtBubble(empId, "📨 Got your message...");
     saveInbox();
     renderEmailList();
 

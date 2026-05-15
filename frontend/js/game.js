@@ -29,15 +29,21 @@ class OfficeScene extends Phaser.Scene {
     this.load.spritesheet("lu", "/assets/character-male2.png", {
       frameWidth: 16, frameHeight: 32
     });
+    this.load.image("chair", "/assets/chair-red.png");
+    this.load.image("workstation", "/assets/workstation.png");
   }
 
   create() {
-    // Floor
+    // Floor — depth 0 (default)
     this.add.rectangle(400, 300, 800, 600, 0x2d2d44);
 
-    // Desks — presential
-    this.add.rectangle(200, 270, 80, 20, 0x6b5a3e);
-    this.add.rectangle(400, 270, 80, 20, 0x6b5a3e);
+    // Chairs — depth 1 (behind workstation and employee)
+    this.add.image(200, 250, "chair").setScale(2).setDepth(1);
+    this.add.image(400, 250, "chair").setScale(2).setDepth(1);
+
+    // Workstations — depth 3 (in front of employee when at desk)
+    this.add.image(200, 265, "workstation").setScale(2).setDepth(3);
+    this.add.image(400, 265, "workstation").setScale(2).setDepth(3);
 
     // Meeting room
     this.add.rectangle(620, 180, 150, 100, 0x3a3a5c);
@@ -52,7 +58,7 @@ class OfficeScene extends Phaser.Scene {
 
     // Animations
     ["maria", "james", "lu"].forEach(key => {
-      const blinkRate = Phaser.Math.Between(3, 6);
+      const blinkRate = Phaser.Math.Between(3, 9);
       this.anims.create({
         key: `${key}_blink`,
         frames: [
@@ -85,6 +91,7 @@ class OfficeScene extends Phaser.Scene {
     sprite.setScale(3);
     sprite.textureKey = textureKey;
     sprite.currentDirection = "front";
+    sprite.setDepth(2);
     sprite.play(`${textureKey}_blink`);
     this.employeeSprites[id] = sprite;
   }
@@ -118,10 +125,21 @@ class OfficeScene extends Phaser.Scene {
       duration: 800, ease: "Power2",
       onComplete: () => {
         sprite.setFlipX(false);
-        sprite.play(`${key}_blink`, true);
-        sprite.currentDirection = "front";
+        if (activity === "chatting with a coworker") {
+          sprite.play(`${key}_idle_side`, true);
+          // emp_001 faces right, emp_002 faces left
+          if (id === "emp_001") sprite.setFlipX(false);
+          if (id === "emp_002") sprite.setFlipX(true);
+        } else {
+          sprite.play(`${key}_blink`, true);
+        }
+        sprite.currentDirection = activity === "chatting with a coworker" ? "side" : "front";
       }
     });
+
+    // Adjust depth based on activity
+    const atDesk = activity === "working" || activity === "focused";
+    sprite.setDepth(atDesk ? 2 : 4);
   }
 
   pollState() {
@@ -132,7 +150,8 @@ class OfficeScene extends Phaser.Scene {
           const sprite = this.employeeSprites[emp.id];
           if (sprite) {
             this.moveEmployeeTo(emp.id, emp.current_activity);
-            sprite.setDepth(sprite.y);
+            const atDesk = emp.current_activity === "working" || emp.current_activity === "focused";
+            sprite.setDepth(atDesk ? 2 : 4);
           }
         });
       })
