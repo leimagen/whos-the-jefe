@@ -7,3 +7,5 @@ simulator/state.json
 *.pyc
 assets/
 DEV_NOTES.md
+# design document (kept private)
+whos-the-jefe-GDD.md
